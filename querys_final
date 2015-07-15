@@ -1,0 +1,41 @@
+# Query 3.1:
+#
+# 1. Quais os participantes inscritos em leilões mas sem lances até à data? 
+
+select distinct c.pessoa
+from concorrente c 
+WHERE c.pessoa 
+not in (select l.pessoa from lance l)
+;
+# Query 3.2:
+#
+# 2. Qual o nome das pessoas coletivas com exatamente duas inscrições em leilões? 
+
+select pessoa 
+from (select pessoa, count(*) as num from concorrente group BY pessoa)tab 
+where tab.num = 2 and tab.pessoa 
+in	(select nif from pessoac)
+;
+# Query 3.3:
+#
+# 3. Qual o leilão com o maior rácio (valor do melhor lance)/(valor base)?
+
+select distinct leilao, (max/valorbase) as racio
+from (select leilao, max(valor)as max from lance group by leilao) as tab join leilao le join leilaor lr
+on tab.leilao=lr.lid and le.nif=lr.nif and le.nrleilaonodia=lr.nrleilaonodia and le.dia=lr.dia
+where max/valorbase	 = 	(select max(l1.valor/l3.valorbase)
+						from leilao l3, leilaor l2, lance l1 
+						where l1.leilao = l2.lid 
+						and l2.dia = l3.dia 
+						and l2.nrleilaonodia = l3.nrleilaonodia
+						and l2.nif = l3.nif)
+;
+# Query 3.4:
+#
+# 4. Quais as pessoas coletivas com o mesmo capital social? 
+
+select p1.nif, p2.nif from  pessoac p1, pessoac p2
+where p1.capitalsocial = p2.capitalsocial AND p1.nif < p2.nif
+;
+
+ 

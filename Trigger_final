@@ -1,0 +1,23 @@
+# Trigger 'TriggerLance'
+#
+# :. verifica se os lances efectuados nao se sobrepoem sobre as
+# regras de integridade da Base de Dados
+
+delimiter //
+drop trigger if exists triggerLance //
+CREATE TRIGGER triggerLance BEFORE INSERT ON lance
+FOR EACH ROW
+	BEGIN
+					
+		if 	new.valor < (select valorbase
+						from leilao l cross join leilaor lr on l.dia=lr.dia and l.nrleilaonodia=lr.nrleilaonodia and l.nif=lr.nif
+						where lid = new.leilao) 
+			then call LanceInferiorAoValorBase();
+		end if;
+			
+		if new.valor < (select max(l.valor) from lance l where new.leilao = l.leilao group by leilao)			
+			then call LanceInferiorAoLanceActual();
+		end if;
+			
+	end//
+delimiter ;
